@@ -20,11 +20,38 @@ Private workloads often need software updates, package downloads, or outbound AP
 A private instance sends traffic to its route table. The default route points to the NAT. The NAT translates the source IP to its public address and sends the traffic out through the IGW.
 
 ```mermaid
-flowchart LR
-    Priv[Private EC2] --> RT[Private Route Table]
-    RT --> NAT[NAT Gateway]
-    NAT --> IGW[Internet Gateway]
-    IGW --> Internet
+flowchart TB
+    Internet((Internet))
+
+    subgraph VPC["Application VPC"]
+        direction LR
+
+        subgraph AZA["AZ A"]
+            direction TB
+            subgraph PubA["Public subnet"]
+                NATA[NAT Gateway A]
+            end
+            subgraph PrivA["Private subnet"]
+                AppA[Private app A]
+                RTA[Route: 0.0.0.0/0 -> NAT A]
+            end
+        end
+
+        subgraph AZB["AZ B"]
+            direction TB
+            subgraph PubB["Public subnet"]
+                NATB[NAT Gateway B]
+            end
+            subgraph PrivB["Private subnet"]
+                AppB[Private app B]
+                RTB[Route: 0.0.0.0/0 -> NAT B]
+            end
+        end
+    end
+
+    IGW[Internet Gateway] --> Internet
+    AppA --> RTA --> NATA --> IGW
+    AppB --> RTB --> NATB --> IGW
 ```
 
 ## When To Use

@@ -21,10 +21,25 @@ A provider publishes an endpoint service. A consumer creates an interface endpoi
 
 ```mermaid
 flowchart LR
-    Consumer[Consumer VPC] --> VPCE[Interface Endpoint]
-    VPCE --> Service[PrivateLink Endpoint Service]
-    Service --> NLB[Provider NLB]
-    NLB --> App[Provider Service]
+    subgraph ConsumerVPC["Consumer VPC"]
+        direction TB
+        subgraph ConsumerPrivate["Private subnet"]
+            ConsumerApp[Consumer app]
+            VPCE[Interface VPC endpoint]
+        end
+    end
+
+    PL[PrivateLink endpoint service]
+
+    subgraph ProviderVPC["Provider VPC"]
+        direction TB
+        subgraph ProviderPrivate["Private service subnet"]
+            NLB[Internal NLB]
+            ServiceApp[Provider service]
+        end
+    end
+
+    ConsumerApp --> VPCE --> PL --> NLB --> ServiceApp
 ```
 
 ## When To Use

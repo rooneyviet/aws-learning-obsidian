@@ -25,14 +25,37 @@ AWS needs a way to give each customer private network boundaries, IP addressing 
 A VPC is created in a Region and spans all AZs in that Region. You divide it into subnets, attach route tables, and decide which resources are reachable from the internet, from other VPCs, or only privately.
 
 ```mermaid
-flowchart LR
-    Internet --> IGW[Internet Gateway]
-    IGW --> Pub[Public Subnet]
-    Pub --> ALB[Load Balancer]
-    ALB --> Priv1[Private App Subnet]
-    Priv1 --> Priv2[Private DB Subnet]
-    Priv1 --> NAT[NAT Gateway]
-    NAT --> IGW
+flowchart TB
+    Internet((Internet)) --> IGW[Internet Gateway]
+
+    subgraph VPC["VPC 10.0.0.0/16"]
+        direction TB
+
+        subgraph Public["Public subnets"]
+            ALB[Public ALB]
+            NATA[NAT Gateway AZ-A]
+            NATB[NAT Gateway AZ-B]
+        end
+
+        subgraph PrivateApp["Private app subnets"]
+            AppA[App tier AZ-A]
+            AppB[App tier AZ-B]
+        end
+
+        subgraph PrivateDB["Private DB subnets"]
+            DB[(RDS or Aurora DB tier)]
+        end
+    end
+
+    IGW --> ALB
+    ALB --> AppA
+    ALB --> AppB
+    AppA --> DB
+    AppB --> DB
+    AppA --> NATA
+    AppB --> NATB
+    NATA --> IGW
+    NATB --> IGW
 ```
 
 ## When To Use

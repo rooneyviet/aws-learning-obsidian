@@ -21,12 +21,36 @@ Traffic needs clear forwarding decisions inside and outside a VPC: local traffic
 When a resource sends traffic, AWS matches the most specific route. If a private subnet has `0.0.0.0/0 -> NAT Gateway`, outbound internet traffic leaves through NAT. If a public subnet has `0.0.0.0/0 -> IGW`, traffic can reach the internet directly.
 
 ```mermaid
-flowchart TD
-    A[Private Subnet] --> RT1[Route Table]
-    RT1 -->|10.0.0.0/16| Local[local]
-    RT1 -->|0.0.0.0/0| NAT[NAT Gateway]
-    B[Public Subnet] --> RT2[Route Table]
-    RT2 -->|0.0.0.0/0| IGW[Internet Gateway]
+flowchart LR
+    Internet((Internet)) --> IGW[Internet Gateway]
+
+    subgraph VPC["VPC 10.0.0.0/16"]
+        direction TB
+
+        subgraph PublicSubnet["Public subnet"]
+            ALB[Public ALB]
+        end
+
+        subgraph PrivateSubnet["Private app subnet"]
+            APP[Private app server]
+        end
+
+        subgraph DBSubnet["Isolated DB subnet"]
+            DB[(Private DB)]
+        end
+
+        PublicRT["Public route table\n10.0.0.0/16 -> local\n0.0.0.0/0 -> IGW"]
+        PrivateRT["Private app route table\n10.0.0.0/16 -> local\n0.0.0.0/0 -> NAT"]
+        DBRT["DB route table\n10.0.0.0/16 -> local\nNo default internet route"]
+        NAT[NAT Gateway]
+    end
+
+    ALB -. uses .-> PublicRT
+    APP -. uses .-> PrivateRT
+    DB -. uses .-> DBRT
+    PublicRT --> IGW
+    PrivateRT --> NAT --> IGW
+    ALB --> APP --> DB
 ```
 
 ## When To Use

@@ -21,7 +21,21 @@ After a peering connection is accepted, each VPC route table must include routes
 
 ```mermaid
 flowchart LR
-    VPCA[VPC A 10.0.0.0/16] <-- Peering --> VPCB[VPC B 10.1.0.0/16]
+    subgraph VPCA["VPC A 10.0.0.0/16"]
+        direction TB
+        AApp[Private app subnet]
+        ARoutes["Route table\n10.1.0.0/16 -> pcx"]
+    end
+
+    PCX[VPC peering connection]
+
+    subgraph VPCB["VPC B 10.1.0.0/16"]
+        direction TB
+        BApp[Private service subnet]
+        BRoutes["Route table\n10.0.0.0/16 -> pcx"]
+    end
+
+    AApp --> ARoutes --> PCX --> BRoutes --> BApp
 ```
 
 ## When To Use

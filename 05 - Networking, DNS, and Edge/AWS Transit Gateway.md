@@ -20,13 +20,39 @@ Many organizations outgrow VPC peering meshes. They need centralized, scalable r
 You attach networks to the TGW. Routes are propagated or statically added into TGW route tables. Each attachment can be associated with a route table to control which destinations it can reach.
 
 ```mermaid
-flowchart TD
-    TGW[Transit Gateway]
-    VPC1[VPC App] --> TGW
-    VPC2[VPC Shared Services] --> TGW
-    VPC3[VPC Inspection] --> TGW
-    VPN[Site-to-Site VPN] --> TGW
-    DX[Direct Connect Gateway] --> TGW
+flowchart TB
+    subgraph Region["Networking account in one Region"]
+        TGW[Transit Gateway]
+        TGWRT["TGW route tables\nshared, app, inspection"]
+        TGW --> TGWRT
+    end
+
+    subgraph AppVPC["App VPC"]
+        AppSubnet[Private app subnet]
+        AppRT["Route table\nshared and on-prem CIDRs -> TGW"]
+        AppSubnet --> AppRT
+    end
+
+    subgraph SharedVPC["Shared services VPC"]
+        SharedSubnet[AD, DNS, tooling]
+        SharedRT["Route table\nspoke CIDRs -> TGW"]
+        SharedSubnet --> SharedRT
+    end
+
+    subgraph InspectionVPC["Inspection or egress VPC"]
+        Firewall[Network firewall or proxy tier]
+        InspectRT["Route table\nspoke CIDRs -> TGW"]
+        Firewall --> InspectRT
+    end
+
+    VPN[Site-to-Site VPN attachment]
+    DX[Direct Connect Gateway attachment]
+
+    AppRT --> TGW
+    SharedRT --> TGW
+    InspectRT --> TGW
+    TGW --> VPN
+    TGW --> DX
 ```
 
 ## When To Use

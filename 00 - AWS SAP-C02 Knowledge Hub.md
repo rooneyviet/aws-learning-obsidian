@@ -141,11 +141,30 @@ flowchart TD
 flowchart LR
     U[Users] --> R53[Route 53]
     R53 --> CF[CloudFront]
-    CF --> ALB[ELB]
-    ALB --> APP[EC2 / ECS / EKS / Lambda]
-    APP --> CACHE[ElastiCache]
-    APP --> DB[RDS / Aurora / DynamoDB]
+
+    subgraph VPC["Application VPC"]
+        direction LR
+
+        subgraph Public["Public subnets"]
+            ALB[Public ALB or NLB]
+        end
+
+        subgraph PrivateApp["Private app subnets"]
+            APP[EC2 or ECS or EKS app tier]
+        end
+
+        subgraph PrivateData["Private data subnets"]
+            CACHE[ElastiCache]
+            RDS[RDS or Aurora]
+        end
+    end
+
+    CF --> ALB
+    ALB --> APP
+    APP --> CACHE
+    APP --> RDS
+    APP --> DDB[DynamoDB]
     APP --> S3[S3]
-    APP --> EV[EventBridge / SQS / SNS]
-    APP --> CW[CloudWatch / X-Ray]
+    APP --> EV[EventBridge or SQS or SNS]
+    APP --> CW[CloudWatch or X-Ray]
 ```
