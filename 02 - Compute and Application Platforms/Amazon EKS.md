@@ -23,14 +23,33 @@ Kubernetes has become a common orchestration standard, but operating its control
 AWS runs the Kubernetes control plane. Your workloads run on worker nodes or Fargate profiles. You interact with the cluster using standard Kubernetes tooling.
 
 ```mermaid
-flowchart TD
-    Dev[kubectl or CI/CD] --> API[Kubernetes API on EKS]
-    API --> SCHED[Scheduler and Controllers]
-    SCHED --> NG1[Managed Node Group]
-    SCHED --> NG2[Fargate Profile]
-    NG1 --> P1[Pods]
-    NG1 --> P2[Pods]
-    NG2 --> P3[Pods]
+flowchart TB
+    Dev[kubectl or CI or CD] --> API[Kubernetes API endpoint]
+
+    subgraph Control["AWS-managed EKS control plane"]
+        API --> CP[Scheduler, controllers, and etcd]
+    end
+
+    subgraph VPC["Customer VPC"]
+        direction LR
+
+        subgraph NodeSubnets["Private subnets for worker nodes"]
+            NG[Managed node group on EC2]
+            P1[Pods on worker nodes]
+            P2[Pods on worker nodes]
+        end
+
+        subgraph FargateSubnets["Private subnets for Fargate"]
+            FG[Fargate profile]
+            P3[Pods on Fargate]
+        end
+    end
+
+    CP --> NG
+    CP --> FG
+    NG --> P1
+    NG --> P2
+    FG --> P3
 ```
 
 ## When To Use

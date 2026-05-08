@@ -31,12 +31,12 @@ Each Region has a replica table. DynamoDB replicates changes among them.
 
 ```mermaid
 flowchart LR
-    A[App in us-east-1] --> T1[Replica Table us-east-1]
-    B[App in eu-west-1] --> T2[Replica Table eu-west-1]
-    C[App in ap-southeast-1] --> T3[Replica Table ap-southeast-1]
-    T1 <--> T2
-    T2 <--> T3
-    T1 <--> T3
+    A[App in us-east-1] --> T1[Replica table in us-east-1]
+    B[App in eu-west-1] --> T2[Replica table in eu-west-1]
+    C[App in ap-southeast-1] --> T3[Replica table in ap-southeast-1]
+    T1 -->|async cross-Region replication| T2
+    T2 -->|async cross-Region replication| T3
+    T3 -->|async cross-Region replication| T1
 ```
 
 ## When To Use

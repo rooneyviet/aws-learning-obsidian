@@ -142,29 +142,38 @@ flowchart LR
     U[Users] --> R53[Route 53]
     R53 --> CF[CloudFront]
 
-    subgraph VPC["Application VPC"]
+    subgraph Region["AWS Region"]
         direction LR
 
-        subgraph Public["Public subnets"]
-            ALB[Public ALB or NLB]
+        subgraph VPC["Application VPC"]
+            direction TB
+
+            subgraph Public["Public subnets"]
+                ALB[Public ALB or NLB]
+            end
+
+            subgraph PrivateApp["Private app subnets"]
+                APP[EC2 or ECS or EKS app tier]
+            end
+
+            subgraph PrivateData["Private data subnets"]
+                CACHE[ElastiCache]
+                RDS[RDS or Aurora]
+            end
         end
 
-        subgraph PrivateApp["Private app subnets"]
-            APP[EC2 or ECS or EKS app tier]
-        end
-
-        subgraph PrivateData["Private data subnets"]
-            CACHE[ElastiCache]
-            RDS[RDS or Aurora]
-        end
+        DDB[DynamoDB]
+        S3[S3]
+        EV[EventBridge or SQS or SNS]
+        CW[CloudWatch or X-Ray]
     end
 
     CF --> ALB
     ALB --> APP
     APP --> CACHE
     APP --> RDS
-    APP --> DDB[DynamoDB]
-    APP --> S3[S3]
-    APP --> EV[EventBridge or SQS or SNS]
-    APP --> CW[CloudWatch or X-Ray]
+    APP --> DDB
+    APP --> S3
+    APP --> EV
+    APP -. telemetry .-> CW
 ```

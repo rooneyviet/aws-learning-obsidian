@@ -20,39 +20,32 @@ Many organizations outgrow VPC peering meshes. They need centralized, scalable r
 You attach networks to the TGW. Routes are propagated or statically added into TGW route tables. Each attachment can be associated with a route table to control which destinations it can reach.
 
 ```mermaid
-flowchart TB
-    subgraph Region["Networking account in one Region"]
-        TGW[Transit Gateway]
-        TGWRT["TGW route tables\nshared, app, inspection"]
-        TGW --> TGWRT
-    end
-
-    subgraph AppVPC["App VPC"]
+flowchart LR
+    subgraph AppVPC["Spoke App VPC"]
         AppSubnet[Private app subnet]
-        AppRT["Route table\nshared and on-prem CIDRs -> TGW"]
-        AppSubnet --> AppRT
+        AppRT["VPC route table\non-prem CIDRs -> TGW"]
     end
 
-    subgraph SharedVPC["Shared services VPC"]
-        SharedSubnet[AD, DNS, tooling]
-        SharedRT["Route table\nspoke CIDRs -> TGW"]
-        SharedSubnet --> SharedRT
+    subgraph Region["Transit Gateway in networking account"]
+        direction TB
+        AppAttach[App VPC attachment]
+        InspectAttach[Inspection VPC attachment]
+        VpnAttach[VPN or DX attachment]
+        TGW[Transit Gateway]
+        AppTable["TGW route table for spokes\ndefault path -> inspection"]
+        InspectTable["TGW route table for inspection\non-prem CIDRs -> VPN or DX"]
     end
 
-    subgraph InspectionVPC["Inspection or egress VPC"]
-        Firewall[Network firewall or proxy tier]
-        InspectRT["Route table\nspoke CIDRs -> TGW"]
-        Firewall --> InspectRT
+    subgraph InspectVPC["Inspection VPC"]
+        Firewall[Firewall or proxy tier]
+        InspectRT["VPC route table\nreturn path -> TGW"]
     end
 
-    VPN[Site-to-Site VPN attachment]
-    DX[Direct Connect Gateway attachment]
+    OnPrem[On-prem network]
 
-    AppRT --> TGW
-    SharedRT --> TGW
-    InspectRT --> TGW
-    TGW --> VPN
-    TGW --> DX
+    AppSubnet --> AppRT --> AppAttach --> TGW --> AppTable
+    AppTable -->|inspection path| InspectAttach --> Firewall --> InspectRT --> TGW
+    TGW --> InspectTable -->|forward to on-prem| VpnAttach --> OnPrem
 ```
 
 ## When To Use

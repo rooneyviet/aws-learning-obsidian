@@ -23,13 +23,19 @@ Data lakes often become hard to manage because storage permissions, table permis
 S3 locations are registered with Lake Formation, metadata is stored in Glue Data Catalog, and admins grant access at database, table, column, or tag level.
 
 ```mermaid
-flowchart TD
-    S3[S3 Data Lake] --> LF[Lake Formation]
-    LF --> GC[Glue Data Catalog]
-    LF --> PERM[Central Permissions]
-    PERM --> ATH[Athena]
-    PERM --> GL[Glue]
-    PERM --> EMR[EMR]
+flowchart LR
+    Admin[Data lake admin] --> LF[Lake Formation permissions and LF-Tags]
+    LF -->|governs access to| S3[S3 data lake]
+    LF -->|governs metadata permissions| GC[Glue Data Catalog]
+    ATH[Athena] -->|request access| LF
+    GL[Glue] -->|request access| LF
+    EMR[EMR] -->|request access| LF
+    ATH -->|read metadata| GC
+    ATH -->|read data| S3
+    GL -->|read metadata| GC
+    GL -->|read data| S3
+    EMR -->|read metadata| GC
+    EMR -->|read data| S3
 ```
 
 ## When To Use

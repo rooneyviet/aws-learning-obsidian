@@ -24,10 +24,10 @@ Data lands in S3, metadata is defined in Glue Data Catalog or manually, Athena r
 
 ```mermaid
 flowchart LR
-    S3[Data in S3] --> GC[Glue Data Catalog]
-    GC --> ATH[Athena]
-    ATH --> R[Query Results in S3]
-    ATH --> BI[BI / SQL Client]
+    BI[BI or SQL client] --> ATH[Athena]
+    GC[Glue Data Catalog metadata] -->|schema and partitions| ATH
+    S3[Data in S3] -->|query reads| ATH
+    ATH --> R[Query results in S3]
 ```
 
 ## When To Use

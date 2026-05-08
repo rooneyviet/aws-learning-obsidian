@@ -39,16 +39,25 @@ STS does not define permissions itself. It issues credentials for a role or fede
 5. The principal uses those credentials to call AWS APIs until the session expires.
 
 ```mermaid
-sequenceDiagram
-    participant U as User/Workload
-    participant S as STS
-    participant I as IAM Role
-    participant A as AWS Service
-    U->>S: AssumeRole
-    S->>I: Evaluate trust policy
-    I-->>S: Allowed
-    S-->>U: Temporary credentials
-    U->>A: API call with session credentials
+flowchart LR
+    subgraph Source["Caller account or external identity"]
+        U[User or workload]
+    end
+
+    S[STS]
+
+    subgraph Target["Target AWS account"]
+        R[Assumable IAM role]
+        T[Role trust policy evaluation]
+    end
+
+    C[Temporary credentials]
+    A[AWS service API calls]
+
+    U -->|AssumeRole or federation request| S
+    S --> R --> T
+    T -->|allowed| C
+    C --> A
 ```
 
 ## When To Use

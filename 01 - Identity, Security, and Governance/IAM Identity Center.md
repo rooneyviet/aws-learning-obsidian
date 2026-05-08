@@ -34,9 +34,17 @@ Identity Center authenticates the user, then presents the set of AWS accounts an
 ```mermaid
 flowchart LR
     A[External IdP or built-in directory] --> B[IAM Identity Center]
+    B --> Portal[AWS access portal]
+    Portal --> Choice[User selects AWS account or app]
     B --> C[Permission sets]
-    C --> D[Provisioned IAM roles in AWS accounts]
-    D --> E[STS session for user]
+
+    subgraph Target["Target AWS account"]
+        D[Provisioned IAM role]
+    end
+
+    C --> D
+    Choice --> D
+    D --> E[STS temporary credentials for the user session]
 ```
 
 ## When To Use

@@ -29,31 +29,58 @@ flowchart TB
     Internet((Internet)) --> IGW[Internet Gateway]
 
     subgraph VPC["VPC 10.0.0.0/16"]
-        direction TB
+        direction LR
 
-        subgraph Public["Public subnets"]
-            ALB[Public ALB]
-            NATA[NAT Gateway AZ-A]
-            NATB[NAT Gateway AZ-B]
+        subgraph AZA["Availability Zone A"]
+            direction TB
+            subgraph PublicA["Public subnet"]
+                ALBA[Public ALB node]
+                NATA[NAT Gateway A]
+                PubRTA["Route table\n0.0.0.0/0 -> IGW"]
+            end
+            subgraph PrivateAppA["Private app subnet"]
+                AppA[App tier A]
+                AppRTA["Route table\n0.0.0.0/0 -> NAT A"]
+            end
+            subgraph PrivateDBA["Isolated DB subnet"]
+                DBA[(DB tier primary)]
+                DBRTA["Route table\nlocal only"]
+            end
         end
 
-        subgraph PrivateApp["Private app subnets"]
-            AppA[App tier AZ-A]
-            AppB[App tier AZ-B]
-        end
-
-        subgraph PrivateDB["Private DB subnets"]
-            DB[(RDS or Aurora DB tier)]
+        subgraph AZB["Availability Zone B"]
+            direction TB
+            subgraph PublicB["Public subnet"]
+                ALBB[Public ALB node]
+                NATB[NAT Gateway B]
+                PubRTB["Route table\n0.0.0.0/0 -> IGW"]
+            end
+            subgraph PrivateAppB["Private app subnet"]
+                AppB[App tier B]
+                AppRTB["Route table\n0.0.0.0/0 -> NAT B"]
+            end
+            subgraph PrivateDBB["Isolated DB subnet"]
+                DBB[(DB tier standby or reader)]
+                DBRTB["Route table\nlocal only"]
+            end
         end
     end
 
-    IGW --> ALB
-    ALB --> AppA
-    ALB --> AppB
-    AppA --> DB
-    AppB --> DB
-    AppA --> NATA
-    AppB --> NATB
+    IGW --> ALBA
+    IGW --> ALBB
+    ALBA -->|north-south ingress| AppA
+    ALBB -->|north-south ingress| AppB
+    AppA -->|east-west private traffic| AppB
+    AppA --> DBA
+    AppB --> DBB
+    AppA -. uses .-> AppRTA
+    AppB -. uses .-> AppRTB
+    ALBA -. uses .-> PubRTA
+    ALBB -. uses .-> PubRTB
+    DBA -. uses .-> DBRTA
+    DBB -. uses .-> DBRTB
+    AppRTA --> NATA
+    AppRTB --> NATB
     NATA --> IGW
     NATB --> IGW
 ```

@@ -32,12 +32,12 @@ A request arrives at an integrated service. The associated web ACL evaluates rul
 
 ```mermaid
 flowchart LR
-    A[Client request] --> B[Protected endpoint]
-    B --> C[WAF Web ACL]
-    C --> D{Rule match?}
+    A[Client request] --> B[CloudFront or ALB or API Gateway]
+    B --> C[Associated WAF web ACL]
+    C --> D{Rule evaluation result}
     D -->|Block| E[Reject request]
-    D -->|Challenge/CAPTCHA| F[Human verification]
-    D -->|Allow| G[Forward to application]
+    D -->|Challenge or CAPTCHA| F[Human verification]
+    D -->|Allow| G[Forward to origin or application]
 ```
 
 ## When To Use

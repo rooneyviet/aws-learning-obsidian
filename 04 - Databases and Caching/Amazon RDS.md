@@ -32,9 +32,11 @@ Applications connect to the RDS endpoint over the network just like a normal dat
 
 ```mermaid
 flowchart LR
-    APP[Application] --> WRITER[RDS Primary DB]
-    WRITER --> STANDBY[Multi-AZ Standby]
-    WRITER --> RR[Read Replica]
+    APP[Application writes] --> WRITER[RDS primary DB]
+    APPREAD[Application reads] --> WRITER
+    APPREAD --> RR[Read replica]
+    WRITER -->|synchronous replication for failover| STANDBY[Multi-AZ standby]
+    WRITER -->|asynchronous replication for read scaling| RR
 ```
 
 ## When To Use

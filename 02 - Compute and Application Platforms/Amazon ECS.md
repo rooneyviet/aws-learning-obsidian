@@ -23,13 +23,22 @@ Containers solve packaging and runtime consistency, but operating them across ma
 You push container images to [[Amazon ECR]], define a task definition, create a service, and tell ECS where the tasks should run. For EC2-backed ECS, ECS schedules tasks onto a fleet of EC2 instances. For Fargate-backed ECS, AWS manages the hosts.
 
 ```mermaid
-flowchart TD
-    Dev[Build Pipeline] --> ECR[Amazon ECR]
-    ECR --> ECS[ECS Service]
-    ECS --> Task1[ECS Task]
-    ECS --> Task2[ECS Task]
-    ALB[Application Load Balancer] --> Task1
-    ALB --> Task2
+flowchart TB
+    Dev[Build pipeline] --> ECR[Amazon ECR]
+    Dev --> TD[Task definition]
+    TD --> ECS[ECS service and scheduler]
+    ECR --> ECS
+
+    subgraph Runtime["ECS runtime"]
+        direction LR
+        EC2[Tasks on ECS with EC2]
+        FG[Tasks on ECS with Fargate]
+    end
+
+    ECS --> EC2
+    ECS --> FG
+    ALB[Application Load Balancer] --> EC2
+    ALB --> FG
 ```
 
 ## When To Use

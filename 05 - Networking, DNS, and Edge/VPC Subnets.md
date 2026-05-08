@@ -22,6 +22,8 @@ Resources launched into a subnet get private IP addresses from that subnet’s r
 
 ```mermaid
 flowchart TB
+    Internet((Internet)) --> IGW[Internet Gateway]
+
     subgraph VPC["VPC 10.0.0.0/16"]
         direction LR
 
@@ -29,35 +31,43 @@ flowchart TB
             direction TB
             subgraph PubA["Public subnet 10.0.0.0/24"]
                 ALBA[ALB node]
-                NATA[NAT Gateway]
+                PubRTA["Route table\n0.0.0.0/0 -> IGW"]
             end
             subgraph AppA["Private app subnet 10.0.10.0/24"]
                 EC2A[EC2 or ECS task]
+                AppRTA["Route table\n0.0.0.0/0 -> NAT A"]
             end
             subgraph DBA["Isolated DB subnet 10.0.20.0/24"]
                 RDSA[RDS instance]
+                DBRTA["Route table\nno default route"]
             end
+            NATA[NAT Gateway A]
         end
 
         subgraph AZB["Availability Zone B"]
             direction TB
             subgraph PubB["Public subnet 10.0.1.0/24"]
                 ALBB[ALB node]
-                NATB[NAT Gateway]
+                PubRTB["Route table\n0.0.0.0/0 -> IGW"]
             end
             subgraph AppB["Private app subnet 10.0.11.0/24"]
                 EC2B[EC2 or ECS task]
+                AppRTB["Route table\n0.0.0.0/0 -> NAT B"]
             end
             subgraph DBB["Isolated DB subnet 10.0.21.0/24"]
                 RDSB[RDS standby or reader]
+                DBRTB["Route table\nno default route"]
             end
+            NATB[NAT Gateway B]
         end
     end
 
-    ALBA --> EC2A
-    ALBB --> EC2B
-    EC2A --> RDSA
-    EC2B --> RDSB
+    ALBA --> PubRTA --> IGW
+    ALBB --> PubRTB --> IGW
+    EC2A --> AppRTA --> NATA --> IGW
+    EC2B --> AppRTB --> NATB --> IGW
+    ALBA --> EC2A --> RDSA --> DBRTA
+    ALBB --> EC2B --> RDSB --> DBRTB
 ```
 
 ## When To Use

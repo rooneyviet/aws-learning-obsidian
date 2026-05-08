@@ -40,11 +40,14 @@ Most AWS services use [[KMS]] through envelope encryption:
 5. To decrypt later, the service asks KMS to decrypt the encrypted data key.
 
 ```mermaid
-flowchart TD
-    A[Application or AWS service] --> B[Request data key from KMS]
-    B --> C[KMS key encrypts data key]
-    C --> D[Use plaintext data key to encrypt data]
-    D --> E[Store ciphertext + encrypted data key]
+flowchart LR
+    A[Application or AWS service] --> B[GenerateDataKey request to KMS]
+    B --> C[KMS key]
+    C --> D[Plaintext data key]
+    C --> E[Encrypted data key]
+    D --> F[Encrypt data outside KMS]
+    F --> G[Store ciphertext]
+    E --> H[Store encrypted data key with ciphertext]
 ```
 
 ## When To Use

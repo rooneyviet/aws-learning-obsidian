@@ -25,21 +25,21 @@ flowchart LR
         direction TB
         subgraph ConsumerPrivate["Private subnet"]
             ConsumerApp[Consumer app]
-            VPCE[Interface VPC endpoint]
+            VPCE[Interface VPC endpoint ENI]
         end
     end
 
-    PL[PrivateLink endpoint service]
+    PL[Endpoint service published with PrivateLink]
 
     subgraph ProviderVPC["Provider VPC"]
         direction TB
         subgraph ProviderPrivate["Private service subnet"]
-            NLB[Internal NLB]
+            NLB[Provider NLB]
             ServiceApp[Provider service]
         end
     end
 
-    ConsumerApp --> VPCE --> PL --> NLB --> ServiceApp
+    ConsumerApp -->|consumer-initiated private access| VPCE --> PL --> NLB --> ServiceApp
 ```
 
 ## When To Use
